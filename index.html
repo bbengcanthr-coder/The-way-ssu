@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 บาทสุดท้าย... กับคำว่า "กินแล้วครับแม่"</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;500&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --text-main: #e0e0e0;
+            --text-highlight: #ffffff;
+            --accent-color: #5c6bc0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Prompt', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        /* หน้าจอเริ่มแรก เพื่ออนุญาตให้เล่นเสียง */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1.5s ease;
+        }
+
+        #start-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 15px 40px;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 30px;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        #start-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+        }
+
+        /* คอนเทนเนอร์สำหรับเอฟเฟกต์ฝน */
+        #rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .drop {
+            position: absolute;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.25));
+            width: 1px;
+            height: 10vh;
+            bottom: 100%;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh); }
+            100% { transform: translateY(110vh); }
+        }
+
+        /* โครงสร้างการเล่าเรื่อง */
+        #story-container {
+            position: relative;
+            z-index: 10;
+        }
+
+        .scene {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 12%;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+        }
+
+        .scene.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .text-block {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .highlight {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1.5rem;
+            color: var(--text-highlight);
+            font-weight: 500;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .quote {
+            font-style: italic;
+            color: #b0bec5;
+            border-left: 3px solid var(--accent-color);
+            padding-left: 15px;
+            margin: 2rem 0;
+            font-size: 1.3rem;
+        }
+
+        .ending-scene {
+            text-align: center;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+
+        .delay-1 { transition-delay: 0.5s; }
+        .delay-2 { transition-delay: 1.5s; }
+        .delay-3 { transition-delay: 3s; }
+
+        /* พื้นที่สำหรับใส่ภาพวาด */
+        .art-placeholder {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(45deg, #1a1a1a, #0a0a0a);
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+            /* คุณสามารถแทรกภาพตัวละครสไตล์ Manhwa ที่คุณเคยวาดจาก Procreate หรือ Clip Studio Paint ลงในจุดนี้ เพื่อสื่ออารมณ์วัยรุ่นมหาลัยได้เลย */
+        }
+        
+        .art-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            opacity: 0.7;
+        }
+
+        /* การปรับแต่งสำหรับหน้าจอมือถือโดยเฉพาะ */
+        @media (max-width: 600px) {
+            .scene { padding: 0 8%; }
+            .text-block { font-size: 1rem; }
+            .highlight { font-size: 1.3rem; }
+            .quote { font-size: 1.1rem; }
+            .ending-scene { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-audio" loop>
+        <source src="your-sad-music-and-rain.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="start-screen">
+        <button id="start-btn">สวมหูฟัง แล้วแตะเพื่อเริ่มเรื่องราว</button>
+    </div>
+
+    <div id="rain-container"></div>
+
+    <div id="story-container">
+        
+        <section class="scene">
+            <p class="text-block">ขอนแก่น...</p>
+            <p class="text-block">ที่นั่นมีท้องฟ้ากว้าง มีลมร้อน และมีความหวังของเด็กผู้ชายคนหนึ่ง</p>
+            <p class="text-block">เขาแบกกระเป๋าเป้ใบเก่าๆ มุ่งหน้าสู่กรุงเทพมหานคร<br>เมืองที่ผู้คนบอกว่า... เต็มไปด้วยโอกาส</p>
+        </section>
+
+        <section class="scene">
+            <p class="text-block highlight">มหาวิทยาลัยสิบศิลป์สิริศาสตร์</p>
+            <p class="text-block">คณะเกษตรศาสตร์... ไม่ใช่แค่สถานที่เรียน</p>
+            <p class="text-block">แต่มันคือตั๋วใบเดียวที่จะพาครอบครัวออกจากความลำบาก<br>เขาฝันอยากมีอาชีพที่ดี อยากให้พ่อแม่ได้กินอิ่มนอนหลับ ไม่ต้องตื่นตีสี่มาอาบเหงื่อต่างน้ำเหมือนที่ผ่านมา</p>
+            </section>
+
+        <section class="scene">
+            <p class="text-block">แต่โลกความจริง... มันไม่ได้สวยงามเหมือนในนิยาย</p>
+            <p class="text-block">ค่าเทอม ค่าหอ ค่ากินอยู่ ทำให้เขาต้องเรียนไปด้วย ทำงานไปด้วย</p>
+            <p class="text-block">ร่างกายที่อดนอนเริ่มประท้วง หนังสือก็ต้องอ่าน งานก็ต้องทำ<br>บางวันแค่ลืมตาตื่น ก็รู้สึกเหมือนใช้พลังงานไปหมดแล้ว</p>
+        </section>
+
+        <section class="scene">
+            <p class="text-block">ดึกคืนหนึ่ง ท่ามกลางเสียงฝนที่ตกกระทบหน้าต่างห้องเช่าแคบๆ</p>
+            <p class="text-block">เสียงโทรศัพท์ดังขึ้น... หน้าจอแสดงเบอร์ที่คุ้นเคย</p>
+            <p class="quote">"ฮัลโหล... กินข้าวหรือยังลูก"</p>
+            <p class="text-block">เสียงปลายสายสั่นเล็กน้อยด้วยความคิดถึง</p>
+        </section>
+
+        <section class="scene">
+            <p class="text-block">เขามองไปที่ฝ่ามือตัวเอง...</p>
+            <p class="text-block">ในนั้นมีเหรียญสิบคู่กับเหรียญห้า และเหรียญบาทอีกประปราย</p>
+            <p class="text-block highlight">30 บาทสุดท้าย... ก่อนจะถึงสิ้นเดือน</p>
+        </section>
+
+        <section class="scene">
+            <p class="text-block">เขากลืนก้อนสะอื้นลงคอ ปรับเสียงให้ดูสดใสที่สุดเท่าที่จะทำได้</p>
+            <p class="quote">"กินแล้วครับแม่... วันนี้กินของอร่อยตั้งเยอะ แม่ล่ะกินหรือยัง"</p>
+            <p class="text-block">วางสายไปแล้ว... แต่ความรู้สึกยังคงวนเวียนอยู่ในหัวใจที่บีบรัด</p>
+            <p class="text-block">น้ำตาที่กลั้นไว้ ไหลออกมาพร้อมกับเสียงฝนข้างนอก</p>
+        </section>
+
+        <section class="scene ending-scene">
+            <p class="visible delay-1">เหนื่อยไหม...</p>
+        </section>
+
+        <section class="scene ending-scene">
+            <p class="visible delay-1">อยากกลับบ้านหรือเปล่า...</p>
+        </section>
+
+        <section class="scene ending-scene" style="min-height: 100vh; justify-content: center;">
+            <p class="highlight visible delay-1" style="font-size: 2.5rem; color: var(--accent-color);">กลับบ้านกันนะ...</p>
+        </section>
+
+    </div>
+
+    <script>
+        // ระบบเสียงและหน้าจอเริ่มต้น
+        document.getElementById('start-btn').addEventListener('click', function() {
+            const startScreen = document.getElementById('start-screen');
+            const audio = document.getElementById('bg-audio');
+            
+            startScreen.style.opacity = '0';
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                audio.play().catch(e => console.log("Audio autoplay prevented"));
+            }, 1500);
+        });
+
+        // สร้างเอฟเฟกต์ฝนตก
+        function createRain() {
+            const container = document.getElementById('rain-container');
+            const dropCount = 100; // จำนวนเม็ดฝน
+
+            for (let i = 0; i < dropCount; i++) {
+                let drop = document.createElement('div');
+                drop.classList.add('drop');
+                
+                // สุ่มตำแหน่ง X, ความเร็ว, และความหน่วง
+                drop.style.left = Math.random() * 100 + 'vw';
+                drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                
+                container.appendChild(drop);
+            }
+        }
+        createRain();
+
+        // ระบบ Intersection Observer สำหรับการค่อยๆ ปรากฏของข้อความเมื่อเลื่อนจอ (Scrollytelling)
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.3 // ข้อความจะโผล่เมื่อเลื่อนมาเห็น 30% ของพื้นที่
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scene').forEach(scene => {
+            observer.observe(scene);
+        });
+    </script>
+</body>
+</html>
